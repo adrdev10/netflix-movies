@@ -4,6 +4,7 @@ class Movie {
   String? title;
   String? genre;
   String? premiere;
-  String? IMDBScore;
+  int? IMDBScore;
   String? language;
+  Movie(this.title, this.genre, this.premiere, this.IMDBScore, this.language);
 }

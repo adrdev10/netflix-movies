@@ -5,6 +5,8 @@ import 'package:args/args.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 
+import 'converter.dart';
+
 // For Google Cloud Run, set _hostname to '0.0.0.0'.
 const _hostname = 'localhost';
 
@@ -27,14 +29,26 @@ void main(List<String> args) async {
       .addMiddleware(shelf.logRequests())
       .addHandler(application);
 
-  var server = await io.serve(handler, _hostname, port);
+  var multiHandler = shelf.Cascade().add(movieHandler).add(application).handler;
+
+  var server = await io.serve(multiHandler, _hostname, port);
   print('Serving at http://${server.address.host}:${server.port}');
 }
 
 shelf.Response application(shelf.Request request) {
-  if (request.handlerPath == '/') {
+  if (request.requestedUri.path == '/') {
+    print(request.requestedUri.path);
     var bodyJson = JsonEncoder().convert({'body': '${request.url}'});
     return shelf.Response.ok(bodyJson);
+  }
+  return shelf.Response.notFound('Not found');
+}
+
+shelf.Response movieHandler(shelf.Request request) {
+  print(request.handlerPath);
+  if (request.requestedUri.path == '/movies') {
+    var movies = CSVConverter.Init();
+    return shelf.Response.ok('movies');
   }
   return shelf.Response.notFound('Not found');
 }
